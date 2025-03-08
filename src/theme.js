@@ -3,60 +3,64 @@ import { createTheme } from "@mui/material/styles";
 const theme = createTheme({
     palette: {
         primary: {
-            main: "#1E88E5", // Vibrant blue for professionalism
-            light: "#90CAF9",
-            dark: "#1565C0",
+            main: "#3A86FF", // Vibrant yet soft blue for a modern, creative feel
+            light: "#A3BFFA",
+            dark: "#2A5DB0",
         },
         secondary: {
-            main: "#D81B60", // Elegant pink accent
-            light: "#F06292",
-            dark: "#AD1457",
+            main: "#FF6B6B", // Warm coral for an artsy, energetic accent
+            light: "#FFA8A8",
+            dark: "#C44D4D",
         },
         background: {
-            default: "#F9FBFC", // Soft off-white for a clean background
-            paper: "#FFFFFF", // Pure white for cards with subtle shadows
+            default: "#F7F8FC", // Subtle textured off-white
+            paper: "linear-gradient(145deg, #FFFFFF 0%, #F5F7FA 100%)", // Gradient for cards
         },
         text: {
-            primary: "#212121",
-            secondary: "#757575",
-            hint: "#B0BEC5",
+            primary: "#2D3748", // Deep slate for readability
+            secondary: "#718096",
+            hint: "#A0AEC0",
         },
         error: {
-            main: "#D32F2F",
+            main: "#EF4444",
         },
         success: {
-            main: "#2E7D32",
+            main: "#10B981",
         },
     },
     typography: {
-        fontFamily: "'Poppins', 'Roboto', sans-serif",
-        h1: { fontWeight: 700, fontSize: "2.5rem", letterSpacing: "-1px" }, // For branding/logo
-        h4: { fontWeight: 700, fontSize: "1.75rem", letterSpacing: "-0.5px" },
-        h5: { fontWeight: 600, fontSize: "1.5rem" },
-        h6: { fontWeight: 500, fontSize: "1.25rem" },
-        body1: { fontWeight: 400, fontSize: "1rem" },
-        body2: { fontWeight: 300, fontSize: "0.875rem" },
-        button: { fontWeight: 600, textTransform: "none" },
+        fontFamily: "'Lora', 'Poppins', 'Roboto', sans-serif", // Lora adds an artistic serif touch
+        h1: { fontWeight: 700, fontSize: "2.8rem", letterSpacing: "-1.2px", fontFamily: "'Lora'" },
+        h4: { fontWeight: 600, fontSize: "2rem", letterSpacing: "-0.8px", fontFamily: "'Lora'" },
+        h5: { fontWeight: 600, fontSize: "1.6rem", fontFamily: "'Lora'" },
+        h6: { fontWeight: 500, fontSize: "1.3rem", fontFamily: "'Poppins'" },
+        body1: { fontWeight: 400, fontSize: "1rem", fontFamily: "'Poppins'" },
+        body2: { fontWeight: 300, fontSize: "0.9rem", fontFamily: "'Poppins'" },
+        button: { fontWeight: 600, fontSize: "1rem", textTransform: "none", fontFamily: "'Poppins'" },
     },
     components: {
         MuiButton: {
             styleOverrides: {
                 root: {
-                    borderRadius: 12,
-                    padding: "8px 24px",
-                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                    borderRadius: 16,
+                    padding: "10px 28px",
+                    boxShadow: "0 6px 18px rgba(58, 134, 255, 0.2)", // Soft blue glow
+                    background: "linear-gradient(135deg, #3A86FF 0%, #60A5FA 100%)",
+                    color: "#FFFFFF",
+                    transition: "all 0.3s ease",
                     "&:hover": {
-                        boxShadow: "0 6px 16px rgba(0, 0, 0, 0.15)",
-                        backgroundColor: (theme) => theme.palette.primary.dark,
+                        boxShadow: "0 8px 24px rgba(58, 134, 255, 0.3)",
+                        background: "#2A5DB0",
                     },
                     "&:disabled": {
-                        backgroundColor: "#E0E0E0",
-                        color: "#9E9E9E",
+                        background: "#E2E8F0",
+                        color: "#A0AEC0",
                     },
                 },
                 containedSecondary: {
+                    background: "linear-gradient(135deg, #FF6B6B 0%, #FFA8A8 100%)",
                     "&:hover": {
-                        backgroundColor: (theme) => theme.palette.secondary.dark,
+                        background: "#C44D4D",
                     },
                 },
             },
@@ -64,13 +68,14 @@ const theme = createTheme({
         MuiPaper: {
             styleOverrides: {
                 root: {
-                    background: "#FFFFFF",
-                    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.08)",
-                    borderRadius: 16,
-                    transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                    background: "linear-gradient(145deg, #FFFFFF 0%, #F5F7FA 100%)",
+                    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.03)",
+                    borderRadius: 20,
+                    border: "1px solid rgba(58, 134, 255, 0.1)", // Subtle decorative border
+                    transition: "all 0.3s ease",
                     "&:hover": {
-                        transform: "translateY(-2px)",
-                        boxShadow: "0 12px 32px rgba(0, 0, 0, 0.12)",
+                        transform: "translateY(-4px)",
+                        boxShadow: "0 12px 36px rgba(0, 0, 0, 0.08)",
                     },
                 },
             },
@@ -80,11 +85,13 @@ const theme = createTheme({
                 root: {
                     "& .MuiOutlinedInput-root": {
                         borderRadius: 12,
+                        background: "rgba(255, 255, 255, 0.9)",
                         "&:hover .MuiOutlinedInput-notchedOutline": {
-                            borderColor: (theme) => theme.palette.primary.light,
+                            borderColor: "#A3BFFA",
                         },
                         "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                            borderColor: (theme) => theme.palette.primary.main,
+                            borderColor: "#3A86FF",
+                            boxShadow: "0 0 8px rgba(58, 134, 255, 0.3)",
                         },
                     },
                 },
@@ -93,8 +100,9 @@ const theme = createTheme({
         MuiList: {
             styleOverrides: {
                 root: {
-                    borderRadius: 12,
-                    background: "linear-gradient(135deg, #FFFFFF 0%, #F9F9F9 100%)",
+                    borderRadius: 16,
+                    background: "linear-gradient(135deg, #F9FAFB 0%, #EDF2F7 100%)",
+                    padding: "12px",
                 },
             },
         },

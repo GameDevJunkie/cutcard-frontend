@@ -2,28 +2,27 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Button, TextField, Typography, Paper, Box, CircularProgress } from '@mui/material';
+import { Button, TextField, Typography, Paper, Box } from '@mui/material';
 import API_BASE_URL from '../api';
 
 const AdminLogin = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
-    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
         try {
-            const response = await axios.post(`${API_BASE_URL}/api/admin/login`, { username, password });
+            const response = await axios.post(`${API_BASE_URL}/api/admin/login`, {
+                username,
+                password,
+            });
             localStorage.setItem('token', response.data.token);
             setMessage('Login successful!');
             setTimeout(() => navigate('/admin/dashboard'), 1000);
         } catch (error) {
             setMessage(error.response?.data?.message || 'Error logging in');
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -33,9 +32,10 @@ const AdminLogin = () => {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                minHeight: 'calc(100vh - 64px)',
+                minHeight: '100vh',
                 bgcolor: 'background.default',
                 position: 'relative',
+                overflow: 'hidden',
             }}
         >
             <motion.div
@@ -48,14 +48,25 @@ const AdminLogin = () => {
                     elevation={6}
                     sx={{
                         p: 4,
-                        borderRadius: 16,
-                        maxWidth: 450,
-                        textAlign: 'center',
+                        borderRadius: 4,
+                        maxWidth: 400,
                         position: 'relative',
+                        overflow: 'hidden',
+                        '&:before': {
+                            content: '""',
+                            position: 'absolute',
+                            top: '-50%',
+                            left: '-50%',
+                            width: '200%',
+                            height: '200%',
+                            background: 'radial-gradient(circle, rgba(25, 118, 210, 0.1) 0%, transparent 70%)',
+                            zIndex: 0,
+                            transform: 'rotate(-20deg)',
+                        },
                     }}
                 >
                     <Box sx={{ position: 'relative', zIndex: 1 }}>
-                        <Typography variant="h4" color="primary" sx={{ fontWeight: 700, mb: 3 }}>
+                        <Typography variant="h5" color="primary" sx={{ fontWeight: 700, textAlign: 'center', mb: 3 }}>
                             Admin Login
                         </Typography>
                         <form onSubmit={handleSubmit}>
@@ -72,8 +83,10 @@ const AdminLogin = () => {
                                     margin="normal"
                                     variant="outlined"
                                     required
-                                    placeholder="Enter username"
-                                    InputProps={{ sx: { borderRadius: 12 } }}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': { borderRadius: 2 },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.light' },
+                                    }}
                                 />
                             </motion.div>
                             <motion.div
@@ -90,8 +103,10 @@ const AdminLogin = () => {
                                     margin="normal"
                                     variant="outlined"
                                     required
-                                    placeholder="Enter password"
-                                    InputProps={{ sx: { borderRadius: 12 } }}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': { borderRadius: 2 },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.light' },
+                                    }}
                                 />
                             </motion.div>
                             <motion.div
@@ -106,10 +121,9 @@ const AdminLogin = () => {
                                     variant="contained"
                                     color="primary"
                                     fullWidth
-                                    disabled={loading}
-                                    sx={{ mt: 2, py: 1.5, fontSize: '1.1rem', position: 'relative' }}
+                                    sx={{ mt: 2, py: 1.5, fontSize: '1.1rem' }}
                                 >
-                                    {loading ? <CircularProgress size={24} color="inherit" /> : 'Login'}
+                                    Login
                                 </Button>
                             </motion.div>
                         </form>
