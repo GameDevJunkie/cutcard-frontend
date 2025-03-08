@@ -1,26 +1,27 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { motion } from 'framer-motion';
-import { Button, TextField, Typography, Paper, Box } from '@mui/material';
+import { motion } from 'framer-motion'; // Correct import
+import { Button, TextField, Typography, Paper, Box, CircularProgress } from '@mui/material';
 import API_BASE_URL from '../api';
 
 const CustomerRegister = () => {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [name, setName] = useState('');
     const [message, setMessage] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         try {
-            const response = await axios.post(`${API_BASE_URL}/api/customers`, {
-                phoneNumber,
-                name,
-            });
+            await axios.post(`${API_BASE_URL}/api/customers`, { phoneNumber, name });
             setMessage('Registration successful! Check your SMS.');
             setPhoneNumber('');
             setName('');
         } catch (error) {
             setMessage(error.response?.data?.message || 'Error registering customer');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -30,7 +31,7 @@ const CustomerRegister = () => {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                minHeight: '100vh',
+                minHeight: 'calc(100vh - 64px)', // Adjust for header
                 bgcolor: 'background.default',
                 position: 'relative',
             }}
@@ -44,26 +45,15 @@ const CustomerRegister = () => {
                     elevation={6}
                     sx={{
                         p: 4,
-                        borderRadius: 4,
-                        maxWidth: 400,
+                        borderRadius: 16,
+                        maxWidth: 450,
+                        textAlign: 'center',
                         position: 'relative',
-                        overflow: 'hidden',
-                        '&:before': {
-                            content: '""',
-                            position: 'absolute',
-                            top: '-50%',
-                            left: '-50%',
-                            width: '200%',
-                            height: '200%',
-                            background: 'radial-gradient(circle, rgba(25, 118, 210, 0.1) 0%, transparent 70%)',
-                            zIndex: 0,
-                            transform: 'rotate(-20deg)',
-                        },
                     }}
                 >
                     <Box sx={{ position: 'relative', zIndex: 1 }}>
-                        <Typography variant="h5" color="primary" sx={{ fontWeight: 700, textAlign: 'center', mb: 3 }}>
-                            Register for Cutcard
+                        <Typography variant="h4" color="primary" sx={{ fontWeight: 700, mb: 3 }}>
+                            Join Cutcard
                         </Typography>
                         <form onSubmit={handleSubmit}>
                             <motion.div
@@ -79,10 +69,8 @@ const CustomerRegister = () => {
                                     margin="normal"
                                     variant="outlined"
                                     required
-                                    sx={{
-                                        '& .MuiOutlinedInput-root': { borderRadius: 2 },
-                                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.light' },
-                                    }}
+                                    placeholder="+4512345678"
+                                    InputProps={{ sx: { borderRadius: 12 } }}
                                 />
                             </motion.div>
                             <motion.div
@@ -91,17 +79,15 @@ const CustomerRegister = () => {
                                 transition={{ duration: 0.5, delay: 0.2 }}
                             >
                                 <TextField
-                                    label="Name"
+                                    label="Full Name"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     fullWidth
                                     margin="normal"
                                     variant="outlined"
                                     required
-                                    sx={{
-                                        '& .MuiOutlinedInput-root': { borderRadius: 2 },
-                                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.light' },
-                                    }}
+                                    placeholder="John Doe"
+                                    InputProps={{ sx: { borderRadius: 12 } }}
                                 />
                             </motion.div>
                             <motion.div
@@ -116,9 +102,10 @@ const CustomerRegister = () => {
                                     variant="contained"
                                     color="primary"
                                     fullWidth
-                                    sx={{ mt: 2, py: 1.5, fontSize: '1.1rem' }}
+                                    disabled={loading}
+                                    sx={{ mt: 2, py: 1.5, fontSize: '1.1rem', position: 'relative' }}
                                 >
-                                    Register
+                                    {loading ? <CircularProgress size={24} color="inherit" /> : 'Register'}
                                 </Button>
                             </motion.div>
                         </form>

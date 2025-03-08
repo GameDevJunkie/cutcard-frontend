@@ -19,6 +19,7 @@ import {
     DialogContent,
     DialogActions,
     TextField,
+    CircularProgress,
 } from '@mui/material';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import AddIcon from '@mui/icons-material/Add';
@@ -32,6 +33,7 @@ const AdminDashboard = () => {
     const [openDialog, setOpenDialog] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [cutsToAdd, setCutsToAdd] = useState(1);
+    const [loading, setLoading] = useState(false);
     const videoRef = useRef(null);
     const qrScannerRef = useRef(null);
     const navigate = useNavigate();
@@ -44,6 +46,7 @@ const AdminDashboard = () => {
         }
 
         const fetchCustomers = async () => {
+            setLoading(true);
             try {
                 const response = await axios.get(`${API_BASE_URL}/api/admin/customers`, {
                     headers: { Authorization: `Bearer ${token}` },
@@ -55,6 +58,8 @@ const AdminDashboard = () => {
                     localStorage.removeItem('token');
                     navigate('/admin/login');
                 }
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -69,6 +74,7 @@ const AdminDashboard = () => {
     }, [navigate]);
 
     const handleDeductCut = async (customerId) => {
+        setLoading(true);
         const token = localStorage.getItem('token');
         try {
             const response = await axios.put(
@@ -79,13 +85,16 @@ const AdminDashboard = () => {
             setCustomers(customers.map((c) =>
                 c._id === customerId ? { ...c, cutsRemaining: response.data.cutsRemaining } : c
             ));
-            setMessage(`Cut deducted for ${customers.find(c => c._id === customerId).name}`);
+            setMessage(`Cut deducted for ${customers.find((c) => c._id === customerId).name}`);
         } catch (error) {
             setMessage(error.response?.data?.message || 'Error deducting cut');
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleAddCuts = async () => {
+        setLoading(true);
         const token = localStorage.getItem('token');
         try {
             const response = await axios.put(
@@ -101,32 +110,23 @@ const AdminDashboard = () => {
             setCutsToAdd(1);
         } catch (error) {
             setMessage(error.response?.data?.message || 'Error adding cuts');
+        } finally {
+            setLoading(false);
         }
     };
 
     const requestCameraPermission = async () => {
-        console.log('Is secure context?', window.isSecureContext);
-        console.log('navigator.mediaDevices available?', !!navigator.mediaDevices);
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            setMessage('Camera API not supported. Please ensure this page is served over HTTPS.');
-            console.error('navigator.mediaDevices:', navigator.mediaDevices);
+            setMessage('Camera API not supported. Ensure HTTPS.');
             return false;
         }
 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            stream.getTracks().forEach(track => track.stop());
-            console.log('Camera permission granted');
+            stream.getTracks().forEach((track) => track.stop());
             return true;
         } catch (error) {
-            console.error('Camera permission error:', error);
-            if (error.name === 'NotAllowedError') {
-                setMessage('Camera access denied. Please allow camera permissions in your browser settings.');
-            } else if (error.name === 'NotFoundError') {
-                setMessage('No camera found on this device.');
-            } else {
-                setMessage('Error accessing camera: ' + error.message);
-            }
+            setMessage(error.name === 'NotAllowedError' ? 'Camera access denied. Allow permissions.' : `Error: ${error.message}`);
             return false;
         }
     };
@@ -163,11 +163,12 @@ const AdminDashboard = () => {
             }
         );
 
-        qrScannerRef.current.start().catch((err) => {
-            setMessage('Error starting QR scanner: ' + err.message);
-            console.error(err);
+        try {
+            await qrScannerRef.current.start();
+        } catch (err) {
+            setMessage(`Error starting QR scanner: ${err.message}`);
             setScanning(false);
-        });
+        }
     };
 
     const stopScanning = () => {
@@ -184,7 +185,7 @@ const AdminDashboard = () => {
     };
 
     return (
-        <Box sx={{ p: { xs: 2, md: 4 }, minHeight: '100vh', bgcolor: 'background.default' }}>
+        <Box sx={{ p: { xs: 2, md: 4 }, minHeight: 'calc(100vh - 64px)', bgcolor: 'background.default' }}>
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -194,22 +195,10 @@ const AdminDashboard = () => {
                     elevation={6}
                     sx={{
                         p: { xs: 2, md: 4 },
-                        borderRadius: 4,
-                        maxWidth: 900,
+                        borderRadius: 16,
+                        maxWidth: 1000,
                         mx: 'auto',
                         position: 'relative',
-                        overflow: 'hidden',
-                        '&:before': {
-                            content: '""',
-                            position: 'absolute',
-                            top: '-50%',
-                            left: '-50%',
-                            width: '200%',
-                            height: '200%',
-                            background: 'radial-gradient(circle, rgba(25, 118, 210, 0.1) 0%, transparent 70%)',
-                            zIndex: 0,
-                            transform: 'rotate(20deg)',
-                        },
                     }}
                 >
                     <Box sx={{ position: 'relative', zIndex: 1 }}>
@@ -220,21 +209,26 @@ const AdminDashboard = () => {
                             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                                 <Button
                                     variant="contained"
-                                    color="error"
+                                    color="secondary"
                                     onClick={() => { localStorage.removeItem('token'); navigate('/admin/login'); }}
-                                    sx={{ px: 3, py: 1.5 }}
+                                    sx={{ px: 3, py: 1.5, borderRadius: 12 }}
                                 >
                                     Logout
                                 </Button>
                             </motion.div>
                         </Box>
 
-                        <Typography variant="h5" color="text.secondary" sx={{ mb: 3 }}>
+                        {loading && (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                                <CircularProgress color="primary" />
+                            </Box>
+                        )}
+                        <Typography variant="h5" color="text.primary" sx={{ mb: 3 }}>
                             Registered Customers
                         </Typography>
-                        <List sx={{ bgcolor: 'rgba(250, 250, 250, 0.9)', borderRadius: 2, p: 2 }}>
-                            {customers.length === 0 ? (
-                                <Typography textAlign="center" color="text.secondary">
+                        <List sx={{ bgcolor: 'background.paper', borderRadius: 12, p: 2 }}>
+                            {customers.length === 0 && !loading ? (
+                                <Typography textAlign="center" color="text.secondary" sx={{ py: 2 }}>
                                     No customers registered yet.
                                 </Typography>
                             ) : (
@@ -248,29 +242,29 @@ const AdminDashboard = () => {
                                         <ListItem
                                             sx={{
                                                 py: 2,
-                                                borderRadius: 2,
+                                                borderRadius: 8,
                                                 '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.03)' },
                                                 transition: 'background 0.3s',
                                             }}
                                             secondaryAction={
                                                 <Box display="flex" gap={1}>
-                                                    <Tooltip title="Deduct Cut">
+                                                    <Tooltip title="Deduct Cut" arrow>
                                                         <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                                                             <IconButton
                                                                 color="secondary"
                                                                 onClick={() => handleDeductCut(customer._id)}
-                                                                sx={{ bgcolor: 'rgba(255, 64, 129, 0.1)' }}
+                                                                sx={{ bgcolor: 'rgba(216, 27, 96, 0.1)', borderRadius: 8 }}
                                                             >
                                                                 <RemoveIcon />
                                                             </IconButton>
                                                         </motion.div>
                                                     </Tooltip>
-                                                    <Tooltip title="Add Cuts">
+                                                    <Tooltip title="Add Cuts" arrow>
                                                         <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                                                             <IconButton
                                                                 color="primary"
                                                                 onClick={() => openAddCutsDialog(customer)}
-                                                                sx={{ bgcolor: 'rgba(25, 118, 210, 0.1)' }}
+                                                                sx={{ bgcolor: 'rgba(30, 136, 229, 0.1)', borderRadius: 8 }}
                                                             >
                                                                 <AddIcon />
                                                             </IconButton>
@@ -303,8 +297,8 @@ const AdminDashboard = () => {
                             )}
                         </List>
 
-                        <Typography variant="h5" color="text.secondary" sx={{ mt: 4, mb: 3 }}>
-                            Scan QR Code
+                        <Typography variant="h5" color="text.primary" sx={{ mt: 4, mb: 3 }}>
+                            Scan Customer QR Code
                         </Typography>
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                             <Button
@@ -312,7 +306,8 @@ const AdminDashboard = () => {
                                 color="primary"
                                 startIcon={<CameraAltIcon />}
                                 onClick={scanning ? stopScanning : startScanning}
-                                sx={{ py: 1.5, px: 4, fontSize: '1.1rem' }}
+                                disabled={loading || scanning}
+                                sx={{ py: 1.5, px: 4, fontSize: '1.1rem', borderRadius: 12 }}
                             >
                                 {scanning ? 'Stop Scanning' : 'Start Scanning'}
                             </Button>
@@ -324,12 +319,13 @@ const AdminDashboard = () => {
                                 transition={{ duration: 0.5, ease: "easeOut" }}
                                 sx={{ mt: 3 }}
                             >
-                                <Box
+                                <Paper
+                                    elevation={6}
                                     sx={{
                                         position: 'relative',
-                                        width: '300px',
+                                        width: '320px',
                                         mx: 'auto',
-                                        borderRadius: 3,
+                                        borderRadius: 12,
                                         overflow: 'hidden',
                                         boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
                                     }}
@@ -342,13 +338,13 @@ const AdminDashboard = () => {
                                             left: 0,
                                             right: 0,
                                             bottom: 0,
-                                            border: '2px dashed #ff4081',
-                                            borderRadius: 3,
+                                            border: '3px dashed #D81B60',
+                                            borderRadius: 12,
                                             pointerEvents: 'none',
                                             opacity: 0.7,
                                         }}
                                     />
-                                </Box>
+                                </Paper>
                             </motion.div>
                         )}
                         {message && (
@@ -360,7 +356,7 @@ const AdminDashboard = () => {
                                 <Typography
                                     color={message.includes('deducted') || message.includes('Added') ? 'success.main' : 'error.main'}
                                     textAlign="center"
-                                    sx={{ mt: 3, fontWeight: 500 }}
+                                    sx={{ mt: 3, fontWeight: 500, py: 1, px: 2, borderRadius: 8, bgcolor: 'rgba(0, 0, 0, 0.03)' }}
                                 >
                                     {message}
                                 </Typography>
@@ -373,10 +369,12 @@ const AdminDashboard = () => {
             <Dialog
                 open={openDialog}
                 onClose={() => setOpenDialog(false)}
-                PaperProps={{ sx: { borderRadius: 3, p: 2 } }}
+                PaperProps={{ sx: { borderRadius: 16, p: 2 } }}
+                maxWidth="xs"
+                fullWidth
             >
                 <DialogTitle>
-                    <Typography variant="h6" color="primary" sx={{ fontWeight: 600 }}>
+                    <Typography variant="h5" color="primary" sx={{ fontWeight: 600 }}>
                         Add Cuts for {selectedCustomer?.name}
                     </Typography>
                 </DialogTitle>
@@ -390,7 +388,8 @@ const AdminDashboard = () => {
                         margin="normal"
                         variant="outlined"
                         inputProps={{ min: 1 }}
-                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                        InputProps={{ sx: { borderRadius: 12 } }}
+                        autoFocus
                     />
                 </DialogContent>
                 <DialogActions>
@@ -402,9 +401,10 @@ const AdminDashboard = () => {
                             onClick={handleAddCuts}
                             variant="contained"
                             color="primary"
-                            sx={{ borderRadius: 2, px: 3 }}
+                            disabled={loading}
+                            sx={{ borderRadius: 12, px: 3 }}
                         >
-                            Add Cuts
+                            {loading ? <CircularProgress size={24} color="inherit" /> : 'Add Cuts'}
                         </Button>
                     </motion.div>
                 </DialogActions>
